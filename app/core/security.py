@@ -5,6 +5,7 @@ import bcrypt
 from jose import JWTError, jwt
 
 from app.core.config import settings
+import uuid
 
 
 
@@ -19,13 +20,13 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 #jwt
 
-def _make_token(payload: dict, expires_delta: timedelta) -> str:
 
-    
+
+def _make_token(payload: dict, expires_delta: timedelta) -> str:
     data = payload.copy()
-    
-    expire = datetime.now(timezone.utc) + expires_delta
-    return jwt.encode(data, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+    data["exp"] = datetime.now(timezone.utc) + expires_delta
+    data["jti"] = str(uuid.uuid4())  # ← unique per token
+    return jwt.encode(data, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
 def create_access_token(player_id: str) -> str:
     return _make_token(
